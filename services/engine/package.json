@@ -1,0 +1,25 @@
+{
+  "name": "@ex/engine",
+  "main": "src/ndex.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist"
+  },
+  "exports": {
+    ".": {
+      "classes": "./src/classes/index.ts"
+    }
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/ws": "^8.18.1",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.3"
+  }
+}
