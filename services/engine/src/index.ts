@@ -27,13 +27,11 @@ async function startEngine() {
           [string, string[]][],
         ][]) {
           for (const [id, fields] of messages) {
-            console.log(fields);
-            console.log(fields[1]);
-            
-            if (fields[1] == "create") {
-              for (let i = 0; i < fields.length; i += 2) {
-                data[fields[i]] = fields[i + 1];
-              }
+            for (let i = 0; i < fields.length; i += 2) {
+              data[fields[i]] = fields[i + 1];
+            }
+
+            if (data.action == "create") {
               console.log(data);
             } else if (fields[1] == "balance") {
               console.log("price");
