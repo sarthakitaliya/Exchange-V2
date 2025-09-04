@@ -10,7 +10,7 @@ export interface openOrder {
   timestamp: number;
 }
 
-interface closeOrder extends openOrder{
+interface closeOrder extends openOrder {
   pnl: number;
 }
 
@@ -18,8 +18,14 @@ interface User {
   email: string;
 }
 
-export const balance: Record<string, number> = {};
+interface Balance {
+  balance: number;
+  tokens: {
+    [key: string]: number;
+  };
+}
+
+export const balance: Record<string, Balance> = {};
 export const op: Record<string, openOrder[]> = {};
 export const cl: Record<string, closeOrder[]> = {};
 export const user: Record<string, User> = {};
-

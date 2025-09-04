@@ -4,6 +4,8 @@ import { tradeMagenr } from "./classes/TradeManager";
 import { v4 as uuid } from "uuid";
 import { op, type openOrder } from "./classes";
 import getOrderData from "./utils/getOrderData";
+import { liquidation } from "./classes/Liquidation";
+
 
 async function startEngine() {
   try {
@@ -39,6 +41,19 @@ async function startEngine() {
             if (stream === REDIS.price) {
               latestPrices[data.asset] = Number(data.price);
               await redis.xack(stream, REDIS.grp, id);
+              op[1].forEach((o) => {
+                const isLiquidated = liquidation.checkLiquidation(latestPrices[data.asset], o.orderId);
+                if (isLiquidated) {
+                  console.log("liquidated", o.orderId);
+                  tradeMagenr.closeOrder(o.userId, latestPrices[data.asset], o.orderId);
+                  const closedOrder = getOrderData(o, latestPrices[data.asset]);
+                  redis.xadd(
+                    REDIS.closed,
+                    "*",
+                    ...closedOrder
+                  );
+                }
+              });
               continue;
             }
             if (stream === REDIS.request) {
@@ -52,7 +67,7 @@ async function startEngine() {
                   console.log("no price for ", data.asset);
                 } else {
                   console.log("price", price);
-                  console.log(data);
+                  
 
                   tradeMagenr.createOrder(
                     uuid(),

@@ -3,7 +3,10 @@ import { balance } from "../store/store";
 class UserManager{
 
     createUser(userId: string){
-        balance[userId] = 5000;
+        balance[userId] = {
+            balance: 5000,
+            tokens: {}
+        };
     }
 
     getBalance(userId: string){
@@ -11,7 +14,7 @@ class UserManager{
     }
 
     updateBalance(userId: string, amount: number){
-        balance[userId] = balance[userId] + amount;
+        balance[userId].balance += amount;
     }
 }
 
