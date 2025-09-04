@@ -1,7 +1,7 @@
 export interface openOrder {
   orderId: string;
   userId: string;
-  symbol: string;
+  asset: string;
   type: "buy" | "sell";
   margin: number;
   leverage: number;
@@ -14,6 +14,12 @@ interface closeOrder extends openOrder{
   pnl: number;
 }
 
+interface User {
+  email: string;
+}
+
 export const balance: Record<string, number> = {};
 export const op: Record<string, openOrder[]> = {};
 export const cl: Record<string, closeOrder[]> = {};
+export const user: Record<string, User> = {};
+

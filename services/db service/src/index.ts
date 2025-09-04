@@ -1,4 +1,5 @@
 import { REDIS, redis } from "@ex/shared";
+import { insertClosedOrder } from "./dbQueries/order";
 
 async function startDbService() {
   try {
@@ -20,11 +21,11 @@ async function startDbService() {
             for (let i = 0; i < fields.length; i += 2) {
               data[fields[i]] = fields[i + 1];
             }
-            if (data.action == "signup") {
-              //Todo: add logic
-            } else if (data.action == "signin") {
-              //Todo: add logic
+            if(REDIS.closed === streams) {
+              await insertClosedOrder(data);
+              await redis.xadd(REDIS.ack, "*", "order_id", data.order_id);
             }
+            await redis.xack(streams, REDIS.grp, id);
           }
           const status = "success";
           await redis.xadd(
@@ -42,3 +43,5 @@ async function startDbService() {
     console.log("DB service", error);
   }
 }
+
+startDbService();

@@ -13,3 +13,49 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  balance   Float    @default(0.0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    ClosedOrder[]
+  tokens    MagicLinkToken[]
+}
+
+model MagicLinkToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  token     String   @unique        
+  expiresAt DateTime               
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ClosedOrder {
+  id         String   @id @default(cuid())       
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+
+  symbol     String                                
+  type       OrderType                            
+  quantity   Float
+  entryPrice Float
+  exitPrice  Float
+  pnl        Float                                
+  status     String @default("CLOSED")
+
+  openedAt   DateTime
+  closedAt   DateTime @default(now())
+}
+
+
+enum OrderType {
+  BUY
+  SELL
+}

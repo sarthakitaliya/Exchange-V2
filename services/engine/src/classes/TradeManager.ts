@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 class TradeMagenr {
   createOrder(
     userId: string,
-    symbol: string,
+    asset: string,
     type: "buy" | "sell",
     margin: number,
     leverage: number,
@@ -20,7 +20,7 @@ class TradeMagenr {
     const order: openOrder = {
       orderId: uuid(),
       userId,
-      symbol,
+      asset,
       type,
       margin,
       leverage,
@@ -53,3 +53,5 @@ class TradeMagenr {
     cl[userId].push({ ...order, pnl });
   }
 }
+
+export const tradeMagenr = new TradeMagenr();

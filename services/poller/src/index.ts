@@ -3,68 +3,50 @@ import { REDIS, redis } from "@ex/shared";
 
 const ws = new WebSocket("wss://ws.backpack.exchange/");
 
-const SOL = {
-  id: 1,
-  method: "SUBSCRIBE",
-  params: ["bookTicker.SOL_USDC_PERP"],
-};
-
-const BTC = {
-  id: 1,
-  method: "SUBSCRIBE",
-  params: ["bookTicker.BTC_USDC_PERP"],
-};
-const ETH = {
-  id: 1,
-  method: "SUBSCRIBE",
-  params: ["bookTicker.ETH_USDC_PERP"],
-};
-interface pu {
-  asset: string;
-  price: string;
-  decimal: number;
+const markets = ["SOL_USDC_PERP", "BTC_USDC_PERP", "ETH_USDC_PERP"];
+for (const m of markets) {
+  ws.on("open", () => {
+    ws.send(
+      JSON.stringify({ id: 1, method: "SUBSCRIBE", params: [`trade.${m}`] })
+    );
+  });
 }
 
-let priceData: pu[] = [];
+type Tick = { asset: string; price: string; decimal: number };
+const latest: Record<string, Tick> = Object.create(null);
 
-ws.on("open", () => {
-  ws.send(JSON.stringify(SOL));
-  ws.send(JSON.stringify(BTC));
-  ws.send(JSON.stringify(ETH));
+ws.on("message", (raw: any) => {
+  const msg = JSON.parse(raw);
+  const sym = msg?.data?.s;
+  const ask = msg?.data?.a;
+  if (!sym || !ask) return;
+
+  const asset = sym.split("_")[0];
+  const decimal = asset === "BTC" ? 4 : 6;
+
+  latest[asset] = { asset, price: ask, decimal };
 });
 
-ws.on("message", (data: any) => {
-  const d = JSON.parse(data);
-  // console.log(d);
+setInterval(async () => {
+  const batch = Object.values(latest);
+  console.log("batch", batch);
 
-  const a = d.data.s.split("_")[0];
-  let decimal = 6;
-  if (a === "BTC") decimal = 4;
-  if (a === "SOL") decimal = 6;
-  if (a === "ETH") decimal = 6;
-  priceData.push({
-    asset: a,
-    price: d.data.a,
-    decimal: decimal,
-  });
+  if (!batch.length) return;
 
-    // console.log(priceData);
-  setInterval(async () => {
-    if (priceData.length > 0) {
-      for (const p of priceData) {
-        await redis.xadd(
-          REDIS.price,
-          "*",
-          "asset",
-          p.asset,
-          "price",
-          p.price,
-          "decimal",
-          p.decimal
-        );
-        // await redis.xadd(REDIS.price, "*", JSON.stringify(priceData));
-        console.log("--");
-      }
-    }
-  }, 1000);
-});
+  for (const k in latest) delete latest[k];
+
+  await Promise.all(
+    batch.map((p) =>
+      redis.xadd(
+        REDIS.price,
+        "*",
+        "asset",
+        p.asset,
+        "price",
+        p.price,
+        "decimal",
+        String(p.decimal)
+      )
+    )
+  ).catch((e) => console.log(e));
+}, 200);
