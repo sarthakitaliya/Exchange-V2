@@ -5,7 +5,7 @@ class Liquidation {
     const order = op[order_id].find((o) => o.orderId == order_id);
     if (!order) throw new Error("Order not found");
     let pnl = 0;
-    if (order.type == "buy") {
+    if (order.type == "BUY") {
       pnl = (currentPrice - order.price) * order.quantity;
     } else {
       pnl = (order.price - currentPrice) * order.quantity;

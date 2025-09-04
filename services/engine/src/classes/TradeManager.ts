@@ -6,14 +6,14 @@ class TradeMagenr {
   createOrder(
     userId: string,
     asset: string,
-    type: "buy" | "sell",
+    type: "BUY" | "SELL",
     margin: number,
     leverage: number,
     price: number
   ) {
     const bal = userManager.getBalance(userId);
 
-    if (bal < margin) throw new Error("Insufficient balance");
+    if (bal.balance < margin) throw new Error("Insufficient balance");
 
     userManager.updateBalance(userId, -margin);
 
@@ -42,7 +42,7 @@ class TradeMagenr {
     if (!order) throw new Error("Order not found");
 
     let pnl = 0;
-    if (order.type == "buy") {
+    if (order.type == "BUY") {
       pnl = (closePrice - order.price) * order.quantity;
     } else {
       pnl = (order.price - closePrice) * order.quantity;

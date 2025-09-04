@@ -2,7 +2,7 @@ export interface openOrder {
   orderId: string;
   userId: string;
   asset: string;
-  type: "buy" | "sell";
+  type: "BUY" | "SELL";
   margin: number;
   leverage: number;
   price: number;

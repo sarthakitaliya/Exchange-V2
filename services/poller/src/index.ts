@@ -20,7 +20,8 @@ ws.on("message", (raw: any) => {
   const sym = msg?.data?.s;
   const ask = msg?.data?.a;
   if (!sym || !ask) return;
-
+  console.log(msg);
+  
   const asset = sym.split("_")[0];
   const decimal = asset === "BTC" ? 4 : 6;
 

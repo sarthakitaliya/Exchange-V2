@@ -6,7 +6,6 @@ import { op, type openOrder } from "./classes";
 import getOrderData from "./utils/getOrderData";
 import { liquidation } from "./classes/Liquidation";
 
-
 async function startEngine() {
   try {
     // await redis.xgroup("CREATE", REDIS.price, REDIS.grp, "0", "MKSTREAM");
@@ -41,20 +40,27 @@ async function startEngine() {
             if (stream === REDIS.price) {
               latestPrices[data.asset] = Number(data.price);
               await redis.xack(stream, REDIS.grp, id);
-              op[1].forEach((o) => {
-                const isLiquidated = liquidation.checkLiquidation(latestPrices[data.asset], o.orderId);
-                if (isLiquidated) {
-                  console.log("liquidated", o.orderId);
-                  tradeMagenr.closeOrder(o.userId, latestPrices[data.asset], o.orderId);
-                  const closedOrder = getOrderData(o, latestPrices[data.asset]);
-                  redis.xadd(
-                    REDIS.closed,
-                    "*",
-                    ...closedOrder
+              Object.entries(op).forEach(([key, values]) => {
+                values.forEach((o: openOrder) => {
+                  const isLiquidated = liquidation.checkLiquidation(
+                    latestPrices[data.asset],
+                    o.orderId
                   );
-                }
+                  if (isLiquidated) {
+                    console.log("liquidated", o.orderId);
+                    tradeMagenr.closeOrder(
+                      o.userId,
+                      latestPrices[data.asset],
+                      o.orderId
+                    );
+                    const closedOrder = getOrderData(
+                      o,
+                      latestPrices[data.asset]
+                    );
+                    redis.xadd(REDIS.closed, "*", ...closedOrder);
+                  }
+                });
               });
-              continue;
             }
             if (stream === REDIS.request) {
               if (data.action == "signup") {
@@ -67,12 +73,11 @@ async function startEngine() {
                   console.log("no price for ", data.asset);
                 } else {
                   console.log("price", price);
-                  
 
                   tradeMagenr.createOrder(
                     uuid(),
                     data.asset,
-                    data.type as "buy" | "sell",
+                    data.type as "BUY" | "SELL",
                     Number(data.margin),
                     Number(data.leverage),
                     price
@@ -84,22 +89,16 @@ async function startEngine() {
               if (!price) {
                 console.log("no price for ", data.asset);
               } else {
-                const order = op[data.userId].find((o) => o.orderId === data.orderId);
-                const price = latestPrices[order?.asset || ''];
+                const order = op[data.userId].find(
+                  (o) => o.orderId === data.orderId
+                );
+                const price = latestPrices[order?.asset || ""];
                 if (!order || !price) {
                   console.log("no order or price found", data.orderId);
                 } else {
-                  tradeMagenr.closeOrder(
-                    data.userId,
-                    price,
-                    data.orderId,
-                  );
+                  tradeMagenr.closeOrder(data.userId, price, data.orderId);
                   const closedOrder = getOrderData(order, price);
-                  await redis.xadd(
-                    REDIS.closed,
-                    "*",
-                    ...closedOrder
-                  );
+                  await redis.xadd(REDIS.closed, "*", ...closedOrder);
                 }
               }
             }
