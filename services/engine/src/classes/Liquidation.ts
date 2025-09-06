@@ -1,24 +1,26 @@
+import type { openOrder } from "@ex/shared";
 import { op } from "../store/store";
 
 class Liquidation {
-  checkLiquidation(currentPrice: number, order_id: string) {
-    const userOrders = op[order_id];
-     if (!userOrders || userOrders.length === 0) {
-      return false;
-    }
-    const order = userOrders.find((o) => o.orderId == order_id);
-    if (!order) throw new Error("Order not found");
-    let pnl = 0;
-    if (order.type == "BUY") {
-      pnl = (currentPrice - order.price) * order.quantity;
-    } else {
-      pnl = (order.price - currentPrice) * order.quantity;
-    }
+  DEFAULT_MMR = 0.005;
+  checkLiquidation(
+    order: openOrder,
+    currentPrice: number,
+    mmr = this.DEFAULT_MMR
+  ): boolean {
+    if(!order) return false;
+    if (!order.leverage || order.leverage <= 1) return false;
 
-    if (pnl <= -order.margin) {
-      return true;
-    }
-    return false;
+    const notional = order.price * order.quantity; 
+    const pnl =
+      order.type === "BUY"
+        ? (currentPrice - order.price) * order.quantity
+        : (order.price - currentPrice) * order.quantity;
+
+    const equity = order.margin + pnl;
+    const maintenance = notional * mmr;
+
+    return equity <= maintenance;
   }
 }
 

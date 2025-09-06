@@ -74,12 +74,13 @@ async function startEngine() {
               if (Object.entries(op).length === 0) continue;
               Object.entries(op).forEach(([key, values]) => {
                 values.forEach((o: openOrder) => {
+                  if (o.asset !== data.asset) return;
                   const isLiquidated = liquidation.checkLiquidation(
-                    latestPrices[data.asset],
-                    o.orderId
+                    o,
+                    latestPrices[data.asset]
                   );
                   if (isLiquidated) {
-                    // console.log("liquidated", o.orderId);
+                    console.log("liquidated", o.orderId);
                     tradeManager.closeOrder(
                       o.userId,
                       latestPrices[data.asset],
