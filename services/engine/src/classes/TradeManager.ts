@@ -1,8 +1,9 @@
-import { cl, op, type openOrder } from "../store/store";
+import { co, op, } from "../store/store";
 import { userManager } from "../classes/UserManager";
 import { v4 as uuid } from "uuid";
+import type { openOrder } from "@ex/shared";
 
-class TradeMagenr {
+class TradeManager {
   createOrder(
     userId: string,
     asset: string,
@@ -50,8 +51,20 @@ class TradeMagenr {
 
     userManager.updateBalance(userId, order.margin + pnl);
     op[userId] = op[userId].filter((o) => o.orderId != orderId);
-    cl[userId].push({ ...order, pnl });
+    co[userId].push({ ...order, pnl });
+  }
+
+  getOpAndClData() {
+    return { op: { ...op }, co: { ...co } };
+  }
+
+  restore(obj: any) {
+    if (!obj) return;
+    for (const k of Object.keys(op)) delete op[k];
+    for (const k of Object.keys(co)) delete co[k];
+    if (obj.op) Object.assign(op, obj.op);
+    if (obj.co) Object.assign(co, obj.co);
   }
 }
 
-export const tradeMagenr = new TradeMagenr();
+export const tradeManager = new TradeManager();

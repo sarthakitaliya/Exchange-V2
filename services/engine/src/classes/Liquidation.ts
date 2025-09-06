@@ -2,7 +2,11 @@ import { op } from "../store/store";
 
 class Liquidation {
   checkLiquidation(currentPrice: number, order_id: string) {
-    const order = op[order_id].find((o) => o.orderId == order_id);
+    const userOrders = op[order_id];
+     if (!userOrders || userOrders.length === 0) {
+      return false;
+    }
+    const order = userOrders.find((o) => o.orderId == order_id);
     if (!order) throw new Error("Order not found");
     let pnl = 0;
     if (order.type == "BUY") {

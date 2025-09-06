@@ -61,6 +61,8 @@ export async function openOrder(req: Request, res: Response) {
       res.status(500).json({ error: "could not place order" });
     }
   } catch (error) {
+    console.log(error);
+    
     res.status(500).json({ error: "internal server error" });
   }
 }

@@ -6,7 +6,7 @@ export default async function stream(
 ) {
   const fields: string[] = [];
   for (const [key, value] of Object.entries(data)) {
-    fields.push(key, value.toString());
+    fields.push(key, value == null ? "" : String(value));
   }
   await redis.xadd(channel, "*", ...fields);
 }
