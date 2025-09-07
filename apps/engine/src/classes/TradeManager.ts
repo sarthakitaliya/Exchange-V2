@@ -1,5 +1,5 @@
 import { co, op, } from "../store/store";
-import { userManager } from "../classes/UserManager";
+import { userManager } from "./UserManager";
 import { v4 as uuid } from "uuid";
 import type { openOrder } from "@ex/shared";
 
